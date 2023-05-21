@@ -1,0 +1,52 @@
+import { createContext,useContext,useEffect,useReducer } from "react";
+
+
+
+export const AuthContext = createContext()
+
+
+
+ export const  AuthContextProvider = ({children})=>{
+
+
+    const authReducer = (state,action)=>{
+
+        switch(action.type){
+case "LOG_IN" : return {user:action.payload,loading:false};
+case "LOG_OUT": return {user:null,loading:false};
+default: return state
+
+
+        }
+
+    }
+
+const INITIAL_STATE = {
+user:null,
+loading:true
+
+}
+ const [state,dispatch] = useReducer(authReducer,INITIAL_STATE)
+
+
+
+useEffect(()=>{
+
+    const user = localStorage.getItem('user')
+    if(user){
+        dispatch({type:"LOG_IN",payload:JSON.parse(user)})
+    }
+},[])
+return (
+    <AuthContext.Provider value={{...state,dispatch}}>
+        {children}
+    </AuthContext.Provider>
+)
+}
+
+
+
+
+
+
+export const useAuth = ()=>useContext(AuthContext)
