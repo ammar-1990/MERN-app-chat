@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import { createError } from "./util/createError.js";
 import Message from './models/messageModel.js'
+import messagesRouter from './routes/messagesRoute.js'
 
 const app = express();
 app.use(cookieParser());
@@ -33,7 +34,7 @@ mongoose
           jwt.verify(accessToken, process.env.JWT_SECRET, (err, payload) => {
             if (err) return next(createError(401, "token is not valid"));
             connection.userId = payload.userId;
-            connection.username = payload.username;
+            connection.username = payload.username;         
             // console.log(connection.userId, connection.username);
           });
         }
@@ -53,14 +54,14 @@ mongoose
       });
       connection.on('message',async(message)=>{
 const theMessage = JSON.parse(message.toString())
-console.log(theMessage)
+
 const {reciever , text} = theMessage
 
 if(reciever&& text){
 
  const message = await Message.create({sender:connection.userId,reciever,text});
 
-  [...wss.clients].filter(el=>el.userId===reciever).forEach(el=>el.send(JSON.stringify({text,sender:connection.userId,id:message._id})))
+  [...wss.clients].filter(el=>el.userId===reciever).forEach(el=>el.send(JSON.stringify({text,sender:connection.userId,id:message._id,reciever})))
 }
    
       })
@@ -82,6 +83,7 @@ app.get("/api", (req, res) => {
 
 app.use(express.json());
 app.use("/api/auth", authRouter);
+app.use('/api/messages',messagesRouter)
 
 app.use((err, req, res, next) => {
   const errorStatus = err.status || 500;
