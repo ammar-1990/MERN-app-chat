@@ -4,6 +4,7 @@ import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/solid";
 import Avatar from "../components/Avatar";
 import { newAxios } from "../util/newAxios";
+import Contact from "../components/Contact";
 
 const Chat = () => {
   const { user } = useAuth();
@@ -15,6 +16,8 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const theRef = useRef();
   const [disconnected, setDisconnected] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [peopleOffline, setPeopleOffline] = useState([]);
 
   const handleSending = (e) => {
     e.preventDefault();
@@ -77,16 +80,51 @@ const Chat = () => {
     }
   }
 
+  useEffect(() => {
+    const getUsers = async () => {
+      try {
+        const res = await newAxios.get("/users");
+        const data = await res.data;
+        // if(!res.ok){
+        //     throw new Error('some thing went wrong')
+        // }
+        console.log(data);
+        setUsers(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    getUsers();
+  }, []);
+
+  useEffect(() => {
+    if (users.length > 0) {
+      const onlineUsersArr = Object.entries(peopleOnline).map(
+        ([_id, name]) => ({ _id, name })
+      );
+      const offlineUsers = users.filter((user) => {
+        return !onlineUsersArr?.find(
+          (onlineUser) => onlineUser._id === user._id
+        );
+      });
+
+      console.log(offlineUsers, peopleOnline);
+
+      setPeopleOffline(offlineUsers);
+    }
+  }, [peopleOnline, users]);
+
   return (
     <div className="h-screen flex">
-         {disconnected && (
-          <div className="fixed h-screen w-screen bg-black/80 flex items-center justify-center">
-            <p className="text-4xl text-red-400 animate-pulse capitalize">
-              Trying to reconnect
-            </p>
-          </div>
-        )}
-      <div className="min-w-[300px] bg-black">
+      {disconnected && (
+        <div className="fixed h-screen w-screen bg-black/80 flex items-center justify-center">
+          <p className="text-4xl text-red-400 animate-pulse capitalize">
+            Trying to reconnect
+          </p>
+        </div>
+      )}
+      <div className="min-w-[300px] bg-black flex flex-col">
         <div className="text-3xl text-white font-bold flex items-center justify-center gap-3 mb-12 py-4">
           <ChatBubbleLeftRightIcon className="text-indigo-600 w-7" />
           <h1>
@@ -94,34 +132,55 @@ const Chat = () => {
           </h1>
         </div>
 
-        <div className=" ">
+        <div className="flex-1 overflow-y-scroll myScroll ">
+            <h3 className="py-3 text-white uppercase text-sm">online users</h3>
           {Object.keys(peopleOnline).map((el) => {
             if (user?.username !== peopleOnline[el])
               return (
-                <div
-                  onClick={() => setChosen(el)}
+              
+                <Contact
+                  chosen={chosen}
+                  el={el}
+                  online={true}
+                  setChosen={setChosen}
+                 
                   key={el}
-                  className={`text-white p-3 capitalize  flex items-center gap-3 cursor-pointer ${
-                    chosen !== el && "hover:bg-slate-900"
-                  } duration-300 ${chosen === el && "bg-indigo-600"}`}
-                >
-                  <Avatar username={peopleOnline[el]} userId={el} online={true} />
-                  <p>{peopleOnline[el]}</p>
-                </div>
+                  username={peopleOnline[el]}
+                />
               );
           })}
         </div>
+        <div className="flex-1 overflow-y-scroll myScroll ">
+        <h3 className="py-3 text-white uppercase text-sm">offline users</h3>
+
+          {peopleOffline?.map((el) => {
+            if (user?.username !== el.username)
+              return (
+              
+                <Contact
+                  chosen={chosen}
+                  el={el}
+                  online={false}
+                  setChosen={setChosen}
+                 id={el._id}
+                  key={el._id}
+                  username={el.username}
+                />
+              );
+          })}
+        </div>
+
+        <button className="text-white bg-indigo-600 py-2 w-fit  self-center px-20 m-4 rounded-md duration-300 hover:bg-indigo-900">Logout</button>
       </div>
 
       <div className="flex-1 bg-slate-200 pb-5 px-3 flex flex-col">
-       
         <div className="flex-1 overflow-y-scroll myScroll">
           {chosen &&
             messages.map((el, i) => (
               <p
                 className={`${
                   el.sender === user._id
-                    ? "bg-blue-500 text-white ml-auto"
+                    ? "bg-indigo-600 text-white ml-auto"
                     : "bg-white text-gray-600 "
                 } m-3 w-fit max-w-[300px] p-2 rounded-lg`}
                 key={i}

@@ -9,6 +9,7 @@ import jwt from "jsonwebtoken";
 import { createError } from "./util/createError.js";
 import Message from './models/messageModel.js'
 import messagesRouter from './routes/messagesRoute.js'
+import usersRouter from './routes/usersRoute.js'
 
 const app = express();
 app.use(cookieParser());
@@ -24,6 +25,19 @@ mongoose
 
     const wss = new WebSocketServer({ server });
     wss.on("connection", (connection, req, res, next) => {
+      const notifyUsers = ()=>{
+        [...wss.clients].forEach((el) => {
+          el.send(
+            JSON.stringify({
+              online: [...wss.clients].map((client) => ({
+                userId: client.userId,
+                username: client.username,
+              })),
+            })
+          );
+        });
+  
+      }
       const { cookie } = req.headers;
       if (cookie) {
         const accessTokenString = cookie
@@ -40,18 +54,19 @@ mongoose
         }
       }
     
+      
+
+
+
+
+    connection.on('close', () => {
+      console.log('Client disconnected');
+      notifyUsers()
+    });
 
       //define people
-      [...wss.clients].forEach((el) => {
-        el.send(
-          JSON.stringify({
-            online: [...wss.clients].map((client) => ({
-              userId: client.userId,
-              username: client.username,
-            })),
-          })
-        );
-      });
+ notifyUsers()
+
       connection.on('message',async(message)=>{
 const theMessage = JSON.parse(message.toString())
 
@@ -69,6 +84,8 @@ if(reciever&& text){
 
     });
 
+
+
  
 
 
@@ -84,6 +101,7 @@ app.get("/api", (req, res) => {
 app.use(express.json());
 app.use("/api/auth", authRouter);
 app.use('/api/messages',messagesRouter)
+app.use('/api/users',usersRouter)
 
 app.use((err, req, res, next) => {
   const errorStatus = err.status || 500;
