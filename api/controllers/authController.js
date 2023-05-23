@@ -51,4 +51,12 @@ try {
 }
 
 }
-export  {addUser,logIn}
+
+
+const logOut = async(req,res,next)=>{
+
+  res.clearCookie('accessToken').send('logged out')
+}
+
+
+export  {addUser,logIn,logOut}

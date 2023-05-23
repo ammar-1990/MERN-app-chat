@@ -1,10 +1,10 @@
 import Avatar from "./Avatar"
 
-const Contact = ({chosen,el,online,username, setChosen,id}) => {
+const Contact = ({chosen,el,online,username,id}) => {
   return (
     <div
 
-    onClick={() => setChosen(online?el : id)}
+ 
 
 
     className={`text-white p-3 capitalize  flex items-center gap-3 cursor-pointer ${

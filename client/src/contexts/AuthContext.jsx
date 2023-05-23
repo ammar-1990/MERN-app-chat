@@ -34,7 +34,12 @@ useEffect(()=>{
 
     const user = localStorage.getItem('user')
     if(user){
+
+      
         dispatch({type:"LOG_IN",payload:JSON.parse(user)})
+    }
+    else{
+        dispatch({type:'LOG_OUT'})
     }
 },[])
 return (

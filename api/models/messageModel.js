@@ -4,7 +4,8 @@ import mongoose from "mongoose";
 const MessageSchema = mongoose.Schema({
 sender:{type:mongoose.Schema.Types.ObjectId,ref:'User'},
 reciever:{type:mongoose.Schema.Types.ObjectId,ref:'User'},
-text:String
+text:String,
+file:String
 
 },{timestamps:true})
 

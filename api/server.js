@@ -10,17 +10,22 @@ import { createError } from "./util/createError.js";
 import Message from './models/messageModel.js'
 import messagesRouter from './routes/messagesRoute.js'
 import usersRouter from './routes/usersRoute.js'
+import  fs from 'fs'
+import path from 'path'
 
 const app = express();
 app.use(cookieParser());
-app.use(cors({ origin: "http://127.0.0.1:5173", credentials: true }));
 
+app.use(cors({ origin: "http://127.0.0.1:5173", credentials: true }));
+const __dirname = path.dirname(new URL(import.meta.url).pathname).slice(1);
+console.log(path.join(__dirname, 'uploads'))
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 mongoose
   .connect(process.env.MONGO)
   .then(() => {
     console.log("database is started");
     const server = app.listen(8800, () => {
-      console.log("server is running");
+      console.log("server is running"); 
     });
 
     const wss = new WebSocketServer({ server });
@@ -48,7 +53,7 @@ mongoose
           jwt.verify(accessToken, process.env.JWT_SECRET, (err, payload) => {
             if (err) return next(createError(401, "token is not valid"));
             connection.userId = payload.userId;
-            connection.username = payload.username;         
+            connection.username = payload.username;          
             // console.log(connection.userId, connection.username);
           });
         }
@@ -57,26 +62,52 @@ mongoose
       
 
 
-
+      notifyUsers()
 
     connection.on('close', () => {
       console.log('Client disconnected');
+   
       notifyUsers()
     });
+    connection.on('disconnected', () => {
+      console.log('Client desdes');  
+   
+      notifyUsers()
+    });
+  
+
 
       //define people
- notifyUsers()
 
-      connection.on('message',async(message)=>{
-const theMessage = JSON.parse(message.toString())
 
-const {reciever , text} = theMessage
+      connection.on('message',async(message)=>{  
 
-if(reciever&& text){
 
- const message = await Message.create({sender:connection.userId,reciever,text});
 
-  [...wss.clients].filter(el=>el.userId===reciever).forEach(el=>el.send(JSON.stringify({text,sender:connection.userId,id:message._id,reciever})))
+const theMessage = JSON.parse(message.toString()) 
+
+
+
+const {reciever , text,file} = theMessage
+let fileName=''
+if(file){
+ const ext = file.name.split('.').pop()
+  fileName = Date.now() + '.'+ext
+
+ const mypath =path.join(__dirname,'uploads',fileName)
+ const bufferData = new Buffer(file.data.split(',')[1],'base64')
+ fs.writeFile(mypath,bufferData,()=>{
+  console.log('file saved')
+ })
+ console.log(mypath)
+}  
+
+if(reciever&& text || file){
+
+ const message = await Message.create({sender:connection.userId,reciever,text,file:fileName });
+ console.log(fileName);
+
+  [...wss.clients].filter(el=>el.userId===reciever).forEach(el=>el.send(JSON.stringify({text,sender:connection.userId,id:message._id,reciever,file:fileName })))
 }
    
       })

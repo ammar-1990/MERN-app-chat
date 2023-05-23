@@ -2,73 +2,125 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/solid";
-import Avatar from "../components/Avatar";
+import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { newAxios } from "../util/newAxios";
 import Contact from "../components/Contact";
+import { PaperClipIcon } from "@heroicons/react/24/outline";
 
 const Chat = () => {
-  const { user } = useAuth();
-
+  const { user, loading: authLoad, dispatch } = useAuth();
+  const [loading, setLoading] = useState(true);
   const [ws, setWs] = useState(null);
   const [peopleOnline, setPeopleOnline] = useState({});
   const [chosen, setChosen] = useState("");
   const [newMessage, setNewMessage] = useState("");
+
   const [messages, setMessages] = useState([]);
   const theRef = useRef();
   const [disconnected, setDisconnected] = useState(false);
   const [users, setUsers] = useState([]);
   const [peopleOffline, setPeopleOffline] = useState([]);
+  const [file, setFile] = useState(null);
 
-  const handleSending = (e) => {
-    e.preventDefault();
+  const handleSending = (e, file) => {
 
-    ws.send(
-      JSON.stringify({
-        reciever: chosen,
-        text: newMessage,
-      })
-    );
+      e.preventDefault();
+    
+setTimeout(()=>{  ws.send(
+  JSON.stringify({
+    reciever: chosen,
+    text: newMessage,
+    file,
+  })
+);
+if (file) {
+  setLoading(true);
+  setTimeout(()=>{ newAxios(`messages/${chosen}`).then((res) => {
+    setMessages(res.data);
+    setLoading(false);},1000)
+ 
+  });
+} else {
+  if (newMessage !== "") {
     setMessages((prev) => [
       ...prev,
       { text: newMessage, sender: user._id, reciever: chosen },
     ]);
+  }
 
-    setNewMessage("");
+
+
+}
+setNewMessage("");
+setFile(null);
+},1000)
+  
+
+    
   };
+  async function reconnect() {
+    setDisconnected(true);
 
-  useEffect(() => {
+    await new Promise((res) =>
+      setTimeout(() => {
+        res();
+      }, 2000)
+    );
     connectToWS();
-  }, []);
-
+  }
   function connectToWS() {
+ 
+    
     console.log("ws connected");
     const ws = new WebSocket("ws://localhost:8800");
+
     setWs(ws);
     setDisconnected(false);
+
     ws.addEventListener("message", handleMessage);
-    ws.addEventListener("close", async () => {
-      setDisconnected(true);
-      await new Promise((res) =>
-        setTimeout(() => {
-          res();
-        }, 2000)
-      );
-      connectToWS();
-    });
+    ws.onclose = (event) => {
+      console.log(event);
+      if (event.code === 1006) {
+        reconnect();
+      }
+    };
   }
 
   useEffect(() => {
-    theRef.current.scrollIntoView({ behavior: "smooth" });
+    if(ws){
+      ws.close()
+    }
+    connectToWS();
+  }, [chosen]);
+
+  useEffect(() => {
+    if (!loading) {
+      theRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   useEffect(() => {
+    
     if (chosen) {
-      newAxios(`messages/${chosen}`).then((res) => setMessages(res.data));
+      setMessages([]);
+      setLoading(true);
+      newAxios(`messages/${chosen}`).then((res) => {
+        setMessages(res.data);
+        setLoading(false);
+      });
     }
   }, [chosen]);
 
   function handleMessage(e) {
+
+ 
+
     const data = JSON.parse(e.data);
+ 
+
+
+
     if ("online" in data) {
       let people = {};
       data.online.forEach(({ userId, username }) => {
@@ -76,7 +128,10 @@ const Chat = () => {
       });
       setPeopleOnline(people);
     } else {
-      setMessages((prev) => [...prev, { ...data }]);
+      console.log('chosen',chosen);
+    if(chosen === data.sender)
+       { setMessages((prev) => [...prev, { ...data }]);}
+      
     }
   }
 
@@ -85,10 +140,7 @@ const Chat = () => {
       try {
         const res = await newAxios.get("/users");
         const data = await res.data;
-        // if(!res.ok){
-        //     throw new Error('some thing went wrong')
-        // }
-        console.log(data);
+
         setUsers(data);
       } catch (error) {
         console.log(error);
@@ -109,12 +161,40 @@ const Chat = () => {
         );
       });
 
-      console.log(offlineUsers, peopleOnline);
-
       setPeopleOffline(offlineUsers);
     }
   }, [peopleOnline, users]);
 
+  const handleLogout = async () => {
+    try {
+      const res = await newAxios.post("/auth/logout");
+      console.log(res.data);
+      dispatch({ type: "LOG_OUT" });
+      localStorage.removeItem("user");
+      ws.removeEventListener("close", reconnect);
+
+      ws.close();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const sendFile = async (e) => {
+    const reader = new FileReader();
+
+    reader.readAsDataURL(e.target.files[0]);
+    reader.onload = () => {
+      setFile({ data: reader.result, name: e.target.files[0].name });
+    };
+  };
+
+  if (!user && authLoad)
+    return (
+      <div className="h-screen w-full text-gray-700 text-5xl flex items-center justify-center animate-pulse">
+        loading..
+      </div>
+    );
+  if (!user && !authLoad) return <Navigate to={"/login"} />;
   return (
     <div className="h-screen flex">
       {disconnected && (
@@ -125,59 +205,67 @@ const Chat = () => {
         </div>
       )}
       <div className="min-w-[300px] bg-black flex flex-col">
-        <div className="text-3xl text-white font-bold flex items-center justify-center gap-3 mb-12 py-4">
+        <div className="text-3xl text-white font-bold flex items-center justify-center gap-3 mb-6 py-4">
           <ChatBubbleLeftRightIcon className="text-indigo-600 w-7" />
           <h1>
             Alpha Chat <span className="text-indigo-600">.</span>
           </h1>
         </div>
-
+        <h1 className="text-white p-4 text-lg capitalize text-center bg-slate-900 mb-6">
+          welcome {user.username}
+        </h1>
         <div className="flex-1 overflow-y-scroll myScroll ">
-            <h3 className="py-3 text-white uppercase text-sm">online users</h3>
+          <h3 className="py-3 text-white uppercase text-sm">online users</h3>
           {Object.keys(peopleOnline).map((el) => {
             if (user?.username !== peopleOnline[el])
               return (
+                <div       key={el} onClick={()=>setChosen(el)}> 
+                   <Contact
+                chosen={chosen}
+                el={el}
+                online={true}
+                setChosen={setChosen}
+          
+                username={peopleOnline[el]}
+              /></div>
               
-                <Contact
-                  chosen={chosen}
-                  el={el}
-                  online={true}
-                  setChosen={setChosen}
-                 
-                  key={el}
-                  username={peopleOnline[el]}
-                />
               );
           })}
         </div>
         <div className="flex-1 overflow-y-scroll myScroll ">
-        <h3 className="py-3 text-white uppercase text-sm">offline users</h3>
+          <h3 className="py-3 text-white uppercase text-sm">offline users</h3>
 
           {peopleOffline?.map((el) => {
             if (user?.username !== el.username)
               return (
-              
-                <Contact
-                  chosen={chosen}
-                  el={el}
-                  online={false}
-                  setChosen={setChosen}
-                 id={el._id}
-                  key={el._id}
-                  username={el.username}
-                />
+                <div     key={el._id} onClick={()=>setChosen(el._id)}>  
+                   <Contact
+                chosen={chosen}
+                el={el}
+                online={false}
+                setChosen={setChosen}
+                id={el._id}
+            
+                username={el.username}
+              /></div>
+            
               );
           })}
         </div>
 
-        <button className="text-white bg-indigo-600 py-2 w-fit  self-center px-20 m-4 rounded-md duration-300 hover:bg-indigo-900">Logout</button>
+        <button
+          onClick={handleLogout}
+          className="text-white bg-indigo-600 py-2 w-fit  self-center px-20 m-4 rounded-md duration-300 hover:bg-indigo-900"
+        >
+          Logout
+        </button>
       </div>
 
       <div className="flex-1 bg-slate-200 pb-5 px-3 flex flex-col">
         <div className="flex-1 overflow-y-scroll myScroll">
-          {chosen &&
+          {chosen && !loading &&
             messages.map((el, i) => (
-              <p
+              <div
                 className={`${
                   el.sender === user._id
                     ? "bg-indigo-600 text-white ml-auto"
@@ -185,9 +273,38 @@ const Chat = () => {
                 } m-3 w-fit max-w-[300px] p-2 rounded-lg`}
                 key={i}
               >
-                {el.text}
-              </p>
+                {" "}
+                <p>{el.text}</p>
+                {el.file && (
+                  <p className="flex items-center gap-1 py-2">
+                    {" "}
+                    <PaperClipIcon
+                      className={`h-4 ${
+                        el.sender === user._id ? "text-white" : "text-gray-600"
+                      }`}
+                    />
+                    <a
+                      className="underline"
+                      href={"http://localhost:8800/api/uploads/" + el.file}
+                      target={"_blank"}
+                      rel="noreferrer"
+                    >
+                      {el.file}
+                    </a>{" "}
+                  </p>
+                )}
+              </div>
             ))}
+          {chosen && loading && (
+            <p className="w-full h-full flex items-center justify-center text-5xl text-gray-400 animate-pulse">
+              Loading...
+            </p>
+          )}
+          {chosen && messages.length === 0 && !loading && (
+            <p className="w-full h-full flex items-center justify-center text-5xl text-gray-400 capitalize ">
+              No messages
+            </p>
+          )}
 
           {!chosen && (
             <div className="h-full flex items-center justify-center text-slate-400 text-5xl font-bold">
@@ -199,7 +316,25 @@ const Chat = () => {
         </div>
 
         {chosen && (
-          <form onSubmit={handleSending} className="flex gap-2 py-2">
+          <form
+            onSubmit={(e) => {
+              handleSending(e, file);
+            }}
+            className="flex gap-2 py-2 relative"
+          >
+            {file?.data && (
+              <div className="absolute px-4 py-1 rounded-full -top-8 right-3 bg-indigo-400 border border-indigo-600 text-white flex items-center gap-2">
+                {file.name}{" "}
+                <span
+                  className="flex items-center justify-center w-5 h-5 p-2 rounded-full cursor-pointer bg-indigo-600"
+                  onClick={() => {
+                    setFile(null);
+                  }}
+                >
+                  X
+                </span>
+              </div>
+            )}
             <input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
@@ -207,8 +342,15 @@ const Chat = () => {
               placeholder="write your message"
               className="flex-1 focus:shadow-md focus:shadow-zinc-500  p-3 rounded-md outline-none  duration-300"
             />
+            <input type="file" id="attach" hidden onChange={sendFile} />
+            <label
+              className="disabled:bg-gray-400 bg-indigo-600 w-12 flex items-center justify-center hover:bg-indigo-700 rounded-md cursor-pointer  duration-300"
+              htmlFor="attach"
+            >
+              <PaperClipIcon className="h-6 text-white" />
+            </label>
             <button
-              disabled={!newMessage.trim()}
+              disabled={!newMessage.trim() && !file}
               className="disabled:bg-gray-400 bg-indigo-600 w-12 flex items-center justify-center hover:bg-indigo-700 rounded-md  duration-300"
             >
               <PaperAirplaneIcon className="text-white h-6" />
