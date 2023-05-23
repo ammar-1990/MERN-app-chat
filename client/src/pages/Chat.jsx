@@ -90,7 +90,7 @@ setFile(null);
   }
 
   useEffect(() => {
-    if(ws){
+    if(ws&&chosen){
       ws.close()
     }
     connectToWS();
