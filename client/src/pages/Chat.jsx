@@ -3,7 +3,6 @@ import { useAuth } from "../contexts/AuthContext";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/solid";
 import { Navigate } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
 import { newAxios } from "../util/newAxios";
 import Contact from "../components/Contact";
 import { PaperClipIcon } from "@heroicons/react/24/outline";
