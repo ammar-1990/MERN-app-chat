@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { newAxios } from "../util/newAxios";
 import Contact from "../components/Contact";
 import { PaperClipIcon } from "@heroicons/react/24/outline";
+import { ChatBubbleOvalLeftIcon } from "@heroicons/react/24/outline";
 
 const Chat = () => {
   const { user, loading: authLoad, dispatch } = useAuth();
@@ -22,6 +23,7 @@ const Chat = () => {
   const [users, setUsers] = useState([]);
   const [peopleOffline, setPeopleOffline] = useState([]);
   const [file, setFile] = useState(null);
+  const [drawer,setDrawer]= useState(false)
 
   const handleSending = (e, file) => {
 
@@ -197,6 +199,7 @@ setFile(null);
   if (!user && !authLoad) return <Navigate to={"/login"} />;
   return (
     <div className="h-screen flex">
+       <div className="fixed bottom-28 right-4 w-12 h-12  flex md:hidden bg-indigo-600  items-center justify-center cursor-pointer rounded-br-lg rounded-tl-lg" onClick={()=>setDrawer(prev=>!prev)}><ChatBubbleOvalLeftIcon  className="h-5 text-white"/></div>
       {disconnected && (
         <div className="fixed h-screen w-screen bg-black/80 flex items-center justify-center">
           <p className="text-4xl text-red-400 animate-pulse capitalize">
@@ -204,7 +207,8 @@ setFile(null);
           </p>
         </div>
       )}
-      <div className="min-w-[300px] bg-black flex flex-col">
+      <div className={`min-w-[300px] bg-black flex flex-col fixed left-0 ${drawer ? 'bottom-0':'-bottom-[1300px]'} duration-300 h-screen md:static z-20`}>
+       
         <div className="text-3xl text-white font-bold flex items-center justify-center gap-3 mb-6 py-4">
           <ChatBubbleLeftRightIcon className="text-indigo-600 w-7" />
           <h1>
@@ -219,7 +223,7 @@ setFile(null);
           {Object.keys(peopleOnline).map((el) => {
             if (user?.username !== peopleOnline[el])
               return (
-                <div       key={el} onClick={()=>setChosen(el)}> 
+                <div       key={el} onClick={()=>{setChosen(el);setDrawer(false)}}> 
                    <Contact
                 chosen={chosen}
                 el={el}
@@ -238,7 +242,7 @@ setFile(null);
           {peopleOffline?.map((el) => {
             if (user?.username !== el.username)
               return (
-                <div     key={el._id} onClick={()=>setChosen(el._id)}>  
+                <div     key={el._id} onClick={()=>{setChosen(el._id);setDrawer(false)}}>  
                    <Contact
                 chosen={chosen}
                 el={el}
@@ -261,7 +265,7 @@ setFile(null);
         </button>
       </div>
 
-      <div className="flex-1 bg-slate-200 pb-5 px-3 flex flex-col">
+      <div className="flex-1 bg-slate-200 pb-5 px-3 flex flex-col ">
         <div className="flex-1 overflow-y-scroll myScroll">
           {chosen && !loading &&
             messages.map((el, i) => (
@@ -307,7 +311,7 @@ setFile(null);
           )}
 
           {!chosen && (
-            <div className="h-full flex items-center justify-center text-slate-400 text-5xl font-bold">
+            <div className="h-full flex items-center justify-center text-slate-400 md:text-5xl text-2xl font-bold">
               &larr;Select a person{" "}
             </div>
           )}
