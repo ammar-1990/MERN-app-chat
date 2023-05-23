@@ -93,12 +93,14 @@ setFile(null);
       ws.close()
     }
     connectToWS();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chosen]);
 
   useEffect(() => {
     if (!loading) {
       theRef.current.scrollIntoView({ behavior: "smooth" });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages]);
 
   useEffect(() => {

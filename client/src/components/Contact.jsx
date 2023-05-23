@@ -1,5 +1,6 @@
 import Avatar from "./Avatar"
 
+// eslint-disable-next-line react/prop-types
 const Contact = ({chosen,el,online,username,id}) => {
   return (
     <div
