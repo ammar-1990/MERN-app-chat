@@ -16,7 +16,7 @@ import path from 'path'
 const app = express();
 app.use(cookieParser());
 
-app.use(cors({ origin: "http://127.0.0.1:5173", credentials: true }));
+app.use(cors({ origin: "https://main--glistening-puppy-1f4fc0.netlify.app", credentials: true }));
 const __dirname = path.dirname(new URL(import.meta.url).pathname).slice(1);
 console.log(path.join(__dirname, 'uploads'))
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
