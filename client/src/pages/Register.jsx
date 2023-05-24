@@ -1,7 +1,7 @@
 import {  useState } from "react";
 import { newAxios } from "../util/newAxios";
 import { useAuth } from "../contexts/AuthContext";
-import {Link, useNavigate} from 'react-router-dom'
+import {Link, Navigate, useNavigate} from 'react-router-dom'
 
 
 
@@ -13,7 +13,7 @@ const [rLoading,setRLoading] = useState(false)
 const [rError, setRError] = useState('')
 
 
-const {dispatch} = useAuth()
+const {dispatch,user} = useAuth()
 
 const handleSubmit = async (e)=> {
 e.preventDefault()
@@ -39,7 +39,7 @@ setRError('')
 
 
 
-
+if(user) return <Navigate to={'/chat'} />
   return (
     <div className={`h-screen bg-black  flex items-center `}>
       <form className="max-w-[500px] mx-auto mb-12 flex flex-col gap-7 w-full p-4">
