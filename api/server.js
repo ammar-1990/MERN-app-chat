@@ -19,7 +19,7 @@ app.use(cookieParser());
 app.use(cors({ origin: "https://main--glistening-puppy-1f4fc0.netlify.app", credentials: true }));
 const __dirname = path.dirname(new URL(import.meta.url).pathname).slice(1);
 console.log(path.join(__dirname, 'uploads'))
-app.use('/api/uploads', express.static("https://api-chat-ukxi.onrender.com/"));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 mongoose
   .connect(process.env.MONGO)
   .then(() => {
@@ -28,7 +28,7 @@ mongoose
       console.log("server is running"); 
     });
 app.get('/',(req,res)=>{
-  res.status(200).send(__dirname)
+  res.status(200).send(path.join(__dirname, 'uploads'))
 })
     const wss = new WebSocketServer({ server });
     wss.on("connection", (connection, req, res, next) => {
