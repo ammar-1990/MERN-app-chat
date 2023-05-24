@@ -347,13 +347,13 @@ setFile(null);
               placeholder="write your message"
               className="flex-1 focus:shadow-md focus:shadow-zinc-500  p-3 rounded-md outline-none  duration-300"
             />
-            <input type="file" id="attach" hidden onChange={sendFile} />
+            {/* <input type="file" id="attach" hidden onChange={sendFile} />
             <label
               className="disabled:bg-gray-400 bg-indigo-600 w-12 flex items-center justify-center hover:bg-indigo-700 rounded-md cursor-pointer  duration-300"
               htmlFor="attach"
             >
               <PaperClipIcon className="h-6 text-white" />
-            </label>
+            </label> */}
             <button
               disabled={!newMessage.trim() && !file}
               className="disabled:bg-gray-400 bg-indigo-600 w-12 flex items-center justify-center hover:bg-indigo-700 rounded-md  duration-300"
