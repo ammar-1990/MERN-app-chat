@@ -122,20 +122,21 @@ setFile(null);
     const data = JSON.parse(e.data);
  
 
+if(data)
+{ if ("online" in data) {
+  let people = {};
+  data?.online?.forEach(({ userId, username }) => {
+    people[userId] = username;
+  });
+  setPeopleOnline(people);
+} else {
+  console.log('chosen',chosen);
+if(chosen === data?.sender)
+   { setMessages((prev) => [...prev, { ...data }]);}
+  
+}}
 
-
-    if ("online" in data) {
-      let people = {};
-      data?.online?.forEach(({ userId, username }) => {
-        people[userId] = username;
-      });
-      setPeopleOnline(people);
-    } else {
-      console.log('chosen',chosen);
-    if(chosen === data?.sender)
-       { setMessages((prev) => [...prev, { ...data }]);}
-      
-    }
+   
   }
 
   useEffect(() => {
