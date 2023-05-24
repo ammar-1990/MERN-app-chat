@@ -27,7 +27,9 @@ mongoose
     const server = app.listen(8800, () => {
       console.log("server is running"); 
     });
-
+app.get('/',(req,res)=>{
+  res.status(200).send(__dirname)
+})
     const wss = new WebSocketServer({ server });
     wss.on("connection", (connection, req, res, next) => {
       const notifyUsers = ()=>{
