@@ -290,7 +290,7 @@ setFile(null);
                     />
                     <a
                       className="underline"
-                      href={"https://api-chat-ukxi.onrender.com/api/uploads/" + el?.file}
+                      href={"https://api-chat-ukxi.onrender.com/opt/render/project/src/api/uploads" + el?.file}
                       target={"_blank"}
                       rel="noreferrer"
                     >
