@@ -28,7 +28,7 @@ const Chat = () => {
 
       e.preventDefault();
     
-setTimeout(()=>{  ws.send(
+  ws.send(
   JSON.stringify({
     reciever: chosen,
     text: newMessage,
@@ -37,11 +37,11 @@ setTimeout(()=>{  ws.send(
 );
 if (file) {
   setLoading(true);
-  setTimeout(()=>{ newAxios(`messages/${chosen}`).then((res) => {
+  newAxios(`messages/${chosen}`).then((res) => {
     setMessages(res.data);
-    setLoading(false);},1000)
+    setLoading(false);}
  
-  });
+  );
 } else {
   if (newMessage !== "") {
     setMessages((prev) => [
@@ -55,7 +55,7 @@ if (file) {
 }
 setNewMessage("");
 setFile(null);
-},1000)
+}
   
 
     
