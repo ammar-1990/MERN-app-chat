@@ -74,7 +74,7 @@ setFile(null);
  
     
     console.log("ws connected");
-    const ws = new WebSocket("ws://https://api-chat-ukxi.onrender.com");
+    const ws = new WebSocket("wss://api-chat-ukxi.onrender.com");
 
     setWs(ws);
     setDisconnected(false);
