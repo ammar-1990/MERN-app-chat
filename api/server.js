@@ -19,7 +19,7 @@ app.use(cookieParser());
 app.use(cors({ origin: "https://main--glistening-puppy-1f4fc0.netlify.app", credentials: true }));
 const __dirname = path.dirname(new URL(import.meta.url).pathname)
 console.log(path.join(__dirname, 'uploads'))
-app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 mongoose
   .connect(process.env.MONGO)
   .then(() => {
