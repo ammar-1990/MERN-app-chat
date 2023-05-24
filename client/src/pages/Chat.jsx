@@ -126,13 +126,13 @@ setFile(null);
 
     if ("online" in data) {
       let people = {};
-      data.online.forEach(({ userId, username }) => {
+      data?.online?.forEach(({ userId, username }) => {
         people[userId] = username;
       });
       setPeopleOnline(people);
     } else {
       console.log('chosen',chosen);
-    if(chosen === data.sender)
+    if(chosen === data?.sender)
        { setMessages((prev) => [...prev, { ...data }]);}
       
     }
@@ -154,13 +154,13 @@ setFile(null);
   }, []);
 
   useEffect(() => {
-    if (users.length > 0) {
-      const onlineUsersArr = Object.entries(peopleOnline).map(
+    if (users?.length > 0) {
+      const onlineUsersArr = Object.entries(peopleOnline)?.map(
         ([_id, name]) => ({ _id, name })
       );
-      const offlineUsers = users.filter((user) => {
+      const offlineUsers = users?.filter((user) => {
         return !onlineUsersArr?.find(
-          (onlineUser) => onlineUser._id === user._id
+          (onlineUser) => onlineUser?._id === user?._id
         );
       });
 
@@ -221,7 +221,7 @@ setFile(null);
         </h1>
         <div className="flex-1 overflow-y-scroll myScroll ">
           <h3 className="py-3 text-white uppercase text-sm">online users</h3>
-          {Object.keys(peopleOnline).map((el) => {
+          {Object.keys(peopleOnline)?.map((el) => {
             if (user?.username !== peopleOnline[el])
               return (
                 <div       key={el} onClick={()=>{setChosen(el);setDrawer(false)}}> 
@@ -241,17 +241,17 @@ setFile(null);
           <h3 className="py-3 text-white uppercase text-sm">offline users</h3>
 
           {peopleOffline?.map((el) => {
-            if (user?.username !== el.username)
+            if (user?.username !== el?.username)
               return (
-                <div     key={el._id} onClick={()=>{setChosen(el._id);setDrawer(false)}}>  
+                <div     key={el?._id} onClick={()=>{setChosen(el._id);setDrawer(false)}}>  
                    <Contact
                 chosen={chosen}
                 el={el}
                 online={false}
                 setChosen={setChosen}
-                id={el._id}
+                id={el?._id}
             
-                username={el.username}
+                username={el?.username}
               /></div>
             
               );
@@ -269,18 +269,18 @@ setFile(null);
       <div className="flex-1 bg-slate-200 pb-5 px-3 flex flex-col ">
         <div className="flex-1 overflow-y-scroll myScroll">
           {chosen && !loading &&
-            messages.map((el, i) => (
+            messages?.map((el, i) => (
               <div
                 className={`${
-                  el.sender === user._id
+                  el?.sender === user?._id
                     ? "bg-indigo-600 text-white ml-auto"
                     : "bg-white text-gray-600 "
                 } m-3 w-fit max-w-[300px] p-2 rounded-lg`}
                 key={i}
               >
                 {" "}
-                <p>{el.text}</p>
-                {el.file && (
+                <p>{el?.text}</p>
+                {el?.file && (
                   <p className="flex items-center gap-1 py-2">
                     {" "}
                     <PaperClipIcon
@@ -290,11 +290,11 @@ setFile(null);
                     />
                     <a
                       className="underline"
-                      href={"http://localhost:8800/api/uploads/" + el.file}
+                      href={"https://api-chat-ukxi.onrender.com/api/uploads/" + el?.file}
                       target={"_blank"}
                       rel="noreferrer"
                     >
-                      {el.file}
+                      {el?.file}
                     </a>{" "}
                   </p>
                 )}
@@ -305,7 +305,7 @@ setFile(null);
               Loading...
             </p>
           )}
-          {chosen && messages.length === 0 && !loading && (
+          {chosen && messages?.length === 0 && !loading && (
             <p className="w-full h-full flex items-center justify-center text-5xl text-gray-400 capitalize ">
               No messages
             </p>
@@ -329,7 +329,7 @@ setFile(null);
           >
             {file?.data && (
               <div className="absolute px-4 py-1 rounded-full -top-8 right-3 bg-indigo-400 border border-indigo-600 text-white flex items-center gap-2">
-                {file.name}{" "}
+                {file?.name}{" "}
                 <span
                   className="flex items-center justify-center w-5 h-5 p-2 rounded-full cursor-pointer bg-indigo-600"
                   onClick={() => {
